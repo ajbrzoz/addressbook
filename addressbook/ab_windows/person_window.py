@@ -22,6 +22,9 @@ class PersonWindow(AddWindow):
         # object in AddressBook corresponding to the chosen Treeview item (found by Person.id)
         self.abook_item = search_base(self.abook, id=int(self.values[-1]))[0]
 
+        # changes to True on clicking 'Save changes' if new values entered by user have valid format
+        self.changes_applied = False
+
         super().__init__(parent, abook, tree, title="{} {}".format(self.values[0], self.values[1]))
 
     def body(self, master):
@@ -56,6 +59,7 @@ class PersonWindow(AddWindow):
                     raise WrongInput("The {} field cannot be empty".format(keyword.capitalize()))
                 if val != "None":
                     setattr(self.abook_item, keyword, self.result[keyword])
+            self.changes_applied = True
             self.cancel()
         except WrongInput as ex:
             tkinter.messagebox.showinfo("Wrong input", str(ex))

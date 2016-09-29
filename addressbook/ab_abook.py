@@ -88,20 +88,19 @@ class AddressBook(list):
 
         if filename is None:
             # default filename containing saving time
-            abook_name = 'abook' + time.strftime('%Y-%m-%d') + '.pkl'
-        elif not filename.endswith('.pkl'):
-            abook_name = filename + '.pkl'
+            abook_name = "abook" + time.strftime("%Y-%m-%d") + ".pkl"
+        elif not filename.endswith(".pkl"):
+            abook_name = filename + ".pkl"
 
-        abook_file = open(abook_name, 'wb')
-        pickle.dump(self, abook_file, 2)
-        abook_file.close()
+        with open(abook_name, "wb") as abook_file:
+            pickle.dump(self, abook_file, 2)
 
         self.filename = abook_name
 
     def pickle_changes(self):
         """Save changes made to an opened file."""
 
-        base_file = open(self.filename, 'wb')
+        base_file = open(self.filename, "wb")
         pickle.dump(self, base_file, 2)
         base_file.close()
 

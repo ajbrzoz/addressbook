@@ -138,7 +138,7 @@ class DashboardBox(object):
 
         if new_values is False:
             self.remove_entry(abook_item, item=item)
-        elif isinstance(new_values, dict):
+        elif person_window.changes_applied is True:
             for col in new_values:
                 self.tree.set(item, col, new_values[col])
 

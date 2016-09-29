@@ -17,13 +17,13 @@ def date_parser(dt_string):
 
     if re.search(re.compile(r'^\d{4}'), dt_string):
         date_pattern = re.compile(r'''
-            \s*                         # optional whitespace
+            ^                         # beginning of string
             (\d{4})                     # year (YYYY)
             [-/.]                        # separator
             ([1-9]|1[0-2])              # month (1-12)
             [-/.]                        # separator
             ([1-9]|[1,2][0-9]|3[0,1])   # day (1-31)
-            \s*                         # optional whitespace
+            $                         # end of string
             ''', re.VERBOSE)
 
         if not re.search(date_pattern, dt_string):
@@ -35,13 +35,13 @@ def date_parser(dt_string):
 
     else:
         date_pattern = re.compile(r'''
-        \s*                         # optional whitespace
+        ^                         # beginning of string
         ([1-9]|[1,2][0-9]|3[0,1])   # day (1-31)
         [-/.]                        # separator
         ([1-9]|1[0-2])              # month (1-12)
         [-/.]                        # separator
         (\d{4})                     # year (YYYY)
-        \s*                         # optional whitespace
+        $                         # end of string
         ''', re.VERBOSE)
 
         if not re.search(date_pattern, dt_string):
