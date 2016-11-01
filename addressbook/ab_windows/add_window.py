@@ -16,7 +16,6 @@ class AddWindow(PopupWindow):
 
         super().__init__(parent, title)
 
-
     def body(self, master):
 
         ttk.Label(master, text="Name: *").grid(row=0, column=0, sticky="w", pady=5)
@@ -64,20 +63,18 @@ class AddWindow(PopupWindow):
                 if not self.result[keyword]:
                     raise WrongInput("The {} field cannot be empty".format(keyword.capitalize()))
 
-            item_added = self.abook.add_new(self.result["name"], self.result["surname"],
+            self.abook.add_new(self.result["name"], self.result["surname"],
                                self.result["email"], self.result["phone"])
 
-            if item_added is True:
+            for keyword in ["birthday", "city", "streetname", "streetnumber"]:
+                if self.result[keyword]:
+                    setattr(self.abook[-1], keyword, self.result[keyword])
 
-                for keyword in ["birthday", "city", "streetname", "streetnumber"]:
-                    if self.result[keyword]:
-                        setattr(self.abook[-1], keyword, self.result[keyword])
-
-                new_name = self.result["name"].title()
-                new_surname = self.result["surname"].title()
-                tkinter.messagebox.showinfo("New item",
-                                            "{0} {1} has been added to the base.".format(new_name, new_surname))
-                self.refresh_tree(self.tree)
+            new_name = self.result["name"].capitalize()
+            new_surname = self.result["surname"].capitalize()
+            tkinter.messagebox.showinfo("New item",
+                                        "{0} {1} has been added to the base.".format(new_name, new_surname))
+            self.refresh_tree(self.tree)
 
             self.cancel()
 
@@ -87,7 +84,7 @@ class AddWindow(PopupWindow):
     def refresh_tree(self, tree):
 
         new_item = self.abook[-1]
-        col_names = ['name', 'surname', 'email', 'phone', 'city', 'streetname', 'streetnumber', 'birthday']
+        col_names = ["name", "surname", "email", "phone", "city", "streetname", "streetnumber", "birthday", "id"]
 
         data = [new_item.__getattribute__(c) for c in col_names]
 

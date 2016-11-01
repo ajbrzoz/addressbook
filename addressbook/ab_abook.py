@@ -1,11 +1,13 @@
 """This module contains AddressBook class used for storing, adding and modifying entries"""
 
+from addressbook.ab_converters import to_json
 from addressbook.ab_helpers import *
 from addressbook.ab_person import *
 
+import json
 import pickle
+import re
 import time
-import tkinter.messagebox
 
 
 class AddressBook(list):
@@ -26,9 +28,6 @@ class AddressBook(list):
 
     def add_new(self, name, surname, email, phone):
         """Add a new person to the address book by creating a new Person instance.
-        Before adding a new item the function checks if there is not anybody
-        with such a name + surname combination in the address book. If so, the user is asked whether he/she wants to
-        add the person anyway.
 
         Attributes:
             name (str): Person's name
@@ -37,29 +36,8 @@ class AddressBook(list):
             phone (str): Person's phone number
         """
 
-        item_added = False  # True if user decides to add the new object; if else, this value remains False
-
-        name = name.title()
-        surname = surname.title()
-
-        c = str(surname + "_" + name)
-
-        if len(self) > 0:
-            item = search_base(self, personid=c)
-            # duplicates found
-            if item is not None:
-                ask = tkinter.messagebox.askyesno("Duplicate found",
-                                                  "There is already a person called {0} {1} in our base. "
-                                                  "\nDo you want to add such a person anyway?".format(name,
-                                                                                                      surname))
-                if ask == "no":
-                    return item_added
-
         # append the new object to AddressBook
         super().append(Person(name, surname, email, phone))
-
-        item_added = True
-        return item_added
 
     def append(self, obj):
         return super().append(self.check(obj))
@@ -77,32 +55,43 @@ class AddressBook(list):
     def insert(self, index, obj):
         return super().insert(index, self.check(obj))
 
-    def pickle_base(self, filename=None):
-        """Save address book as a pickle file.
+    def json_changes(self):
+        """Save changes made to an opened file."""
 
-        Attributes:
-            filename (str) - File saving name
-        """
-
-        abook_name = filename
-
-        if filename is None:
-            # default filename containing saving time
-            abook_name = "abook" + time.strftime("%Y-%m-%d") + ".pkl"
-        elif not filename.endswith(".pkl"):
-            abook_name = filename + ".pkl"
-
-        with open(abook_name, "wb") as abook_file:
-            pickle.dump(self, abook_file, 2)
-
-        self.filename = abook_name
+        self.save_to_json(self.filename)
 
     def pickle_changes(self):
         """Save changes made to an opened file."""
 
-        base_file = open(self.filename, "wb")
-        pickle.dump(self, base_file, 2)
-        base_file.close()
+        self.save_to_pickle(self.filename)
+
+    def save_base(self, filename=None, fileformat=".pkl"):
+
+        abook_name = filename
+        types = re.compile(r".pkl|.pickle|.json$")
+
+        if filename is None:
+            # default filename containing saving time
+            abook_name = "abook" + time.strftime("%Y-%m-%d") + ".pkl"
+        elif not re.search(types, filename):
+            abook_name = filename + ".pkl"
+
+        if fileformat == ".json":
+            self.save_to_json(abook_name)
+        else:
+            self.save_to_pickle(abook_name)
+
+        self.filename = abook_name
+
+    def save_to_json(self, abook_name):
+
+        with open(abook_name, "w", encoding="utf-8") as abook_file:
+            json.dump(self, abook_file, default=to_json)
+
+    def save_to_pickle(self, abook_name):
+
+        with open(abook_name, "wb") as abook_file:
+            pickle.dump(self, abook_file)
 
     def sorting(self, att, reverse=None):
         """Sort the address book by a person's key value

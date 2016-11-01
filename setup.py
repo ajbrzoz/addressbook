@@ -6,10 +6,10 @@ config = {
     'url': '',
     'author_email': 'brzozowskaanna5@gmail.com',
     'version': '1.0',
-    'install_requires': [],
+    'install_requires': ['xlwt', ],
     'packages': ['addressbook', 'addressbook.ab_windows'],
     'scripts': [],
     'name': 'AddressBook'
 }
 
-setup(**config)
+setup(**config, requires=['xlwt'])

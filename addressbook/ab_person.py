@@ -66,54 +66,60 @@ class Person(object):
         return "<{0}: {1}, {2}, {3}, {4}>".format(self.__class__.__name__, self.name, self.surname, self.email,
                                                   self.phone)
 
-    def __setattr__(self, key, value):
-        """Before setting an attribute check if the corresponding value's format is valid"""
+    def __setattr__(self, key, value, conversion=False):
+        """Before setting an attribute check if the corresponding value's format is valid
 
-        # capitalize first letters of non-numeric values (eg. name surname), except for e-mails
-        if isinstance(value, str) and key != "email":
-            value = value.title()
+            conversion (bool) - False by default. True when the Person object is being loaded from JSON file
+                                (when there is no need for parsing values all over again)
 
-        if key == "email":
-            value = email_valid(value)
+        """
 
-        elif key == "phone":
-            a, b, c = phone_parser(value)
-            return (super().__setattr__(key, a),
-                    super().__setattr__("phone_area", b),
-                    super().__setattr__("phone_num", c))
+        if conversion is False:
+            # capitalize first letters of non-numeric values (eg. name surname), except for e-mails
+            if isinstance(value, str) and key != "email":
+                value = value.title()
 
-        elif key == "street":
-            # specifying both street name and number is obligatory in this case
-            if value.replace(" ", "").isalpha():
-                raise WrongInput("You have not chosen a street name.")
-            if value.isdecimal():
-                raise WrongInput("You have not chosen a street number.")
+            if key == "email":
+                value = email_valid(value)
 
-            a, b = street_parser(value)
-            return (super().__setattr__("streetname", a),
-                    super().__setattr__("streetnumber", b))
+            elif key == "phone":
+                a, b, c = phone_parser(value)
+                return (super().__setattr__(key, a),
+                        super().__setattr__("phone_area", b),
+                        super().__setattr__("phone_num", c))
 
-        elif key == "streetname" and value is not None:
-            a, b = street_parser(value, self.streetnumber or " ")
-            return (super().__setattr__(key, a),
-                    super().__setattr__("streetnumber", b))
+            elif key == "street":
+                # specifying both street name and number is obligatory in this case
+                if value.replace(" ", "").isalpha():
+                    raise WrongInput("You have not chosen a street name.")
+                if value.isdecimal():
+                    raise WrongInput("You have not chosen a street number.")
 
-        elif key == "streetnumber" and value is not None:
-            a, b = street_parser(self.streetname or " ", value)
-            if b.isalpha():
-                raise WrongInput("Wrong street number format")
-            return (super().__setattr__(key, b),
-                    super().__setattr__("streetname", a))
+                a, b = street_parser(value)
+                return (super().__setattr__("streetname", a),
+                        super().__setattr__("streetnumber", b))
 
-        elif key == "birthday" and value is not None:
-            y, m, d = date_parser(value)
-            try:
-                birthday = dt.date(y, m, d)
-                return (super().__setattr__(key, birthday),
-                        super().__setattr__("year", birthday.year),
-                        super().__setattr__("month", birthday.month),
-                        super().__setattr__("day", birthday.day))
-            except ValueError as ex:
-                raise WrongInput(ex.__str__())
+            elif key == "streetname" and value is not None:
+                a, b = street_parser(value, self.streetnumber or " ")
+                return (super().__setattr__(key, a),
+                        super().__setattr__("streetnumber", b))
+
+            elif key == "streetnumber" and value is not None:
+                a, b = street_parser(self.streetname or " ", value)
+                if b.isalpha():
+                    raise WrongInput("Wrong street number format")
+                return (super().__setattr__(key, b),
+                        super().__setattr__("streetname", a))
+
+            elif key == "birthday" and value is not None:
+                y, m, d = date_parser(value)
+                try:
+                    birthday = dt.date(y, m, d)
+                    return (super().__setattr__(key, birthday),
+                            super().__setattr__("year", birthday.year),
+                            super().__setattr__("month", birthday.month),
+                            super().__setattr__("day", birthday.day))
+                except ValueError as ex:
+                    raise WrongInput(ex.__str__())
 
         return super().__setattr__(key, value)

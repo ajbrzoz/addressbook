@@ -13,8 +13,8 @@ class PopupWindow(tkinter.simpledialog.Dialog):
 
         super().__init__(parent, title)
 
-
     def body(self, master):
+
         self.resizable(width=False, height=False)
 
         ttk.Label(master, text=self.msg, bg="#506e86").grid(row=0)
@@ -26,8 +26,6 @@ class PopupWindow(tkinter.simpledialog.Dialog):
         return self.e
 
     def buttonbox(self):
-        # add standard button box. override if you don't want the
-        # standard buttons
 
         box = ttk.Frame(self)
 

@@ -1,4 +1,5 @@
 from addressbook.ab_abook import *
+from addressbook.ab_converters import *
 from addressbook.ab_dashboard import *
 from addressbook.ab_windows.add_window import *
 from addressbook.ab_windows.files_window import *
@@ -141,21 +142,26 @@ class App(object):
         open_window = FilesWindow(self.root, title="Open AddressBook")
 
         fname = open_window.result  # filename
+        fformat = open_window.fformat   # file extension
+
+        types = [".pkl", ".pickle", ".json"]    # available extensions: .pkl, .pickle, .json
 
         if not fname:
             pass
+
         else:
+
             try:
                 if os.path.getsize(fname) == 0:
                     raise EmptyFile
-                elif not fname.endswith(".pkl"):    # .pkl is the only file extension allowed (so far)
+                elif fformat not in types:
                     raise FormatError
 
-                with open(fname, "rb") as pkl_file:
-                    abook = pickle.load(pkl_file)
-                    abook.filename = fname
+                self.abook = open_base(fformat, fname)
 
-                self.refresh_app(abook)
+                self.abook.filename = fname
+
+                self.refresh_app(self.abook)
 
                 self.file_menu.entryconfig("Save", state="active")
 
@@ -163,7 +169,7 @@ class App(object):
 
             except FileNotFoundError:
                 answer = tkinter.messagebox.askyesno("File Error",
-                                                     "No such file. Do you want to create new AddressBook?")
+                                                     "No such file. Do you want to create a new AddressBook?")
                 if answer == "yes":
                     self.refresh_app(abook=AddressBook())
                     self.file_menu.entryconfig("Save", state="active")
@@ -213,7 +219,11 @@ class App(object):
     def save(self):
         """Save changes to already existing address book (without specifying the filename)"""
 
-        self.abook.pickle_changes()
+        if self.abook.filename.endswith(".pkl") or self.abook.filename.endswith(".pickle"):
+            self.abook.pickle_changes()
+        elif self.abook.filename.endswith(".json"):
+            self.abook.json_changes()
+
         FileSavedMessage()
 
     def save_as(self, event=None):
@@ -221,15 +231,20 @@ class App(object):
         save_window = SaveFileWindow(self.root, title="Save AddressBook")
 
         fname = save_window.result  # filename (None when saving with a default name)
+        fformat = save_window.fformat
 
         # user chooses not to save any changes
         if not fname and not save_window.is_default:
-            pass
+            return
 
         # save address book to filepath/filename chosen by user or save with a default name
+        elif fformat == ".xls":
+            to_excel(self, fname)
         else:
-            self.abook.pickle_base(filename=fname)
-            FileSavedMessage()
+            self.abook.save_base(filename=fname, fileformat=fformat)
+            
+        FileSavedMessage()
+        self.root.title("{} - AddressBook 0.1".format(os.path.basename(fname)))
 
     def search(self, event=None):
 

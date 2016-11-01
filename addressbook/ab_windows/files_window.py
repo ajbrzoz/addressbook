@@ -16,13 +16,22 @@ class FilesWindow(PopupWindow):
 
         self.fname = fname
         self.directory = None
-        self.filenames = None
+        self.filenames = []
         self.files_container = None
         self.lab = None
         self.lab_msg = None
         self.tree = None
+        self.menu = None
+        self.e_var = tk.StringVar()     # variable for filepath entry box
+
+        self.fformat = tk.StringVar()   # file extension
 
         super().__init__(parent, title, msg="Enter a file path or filename: ")
+
+    def apply(self):
+
+        super().apply()
+        self.fformat = os.path.splitext(self.result)[1]
 
     def body(self, master):
 
@@ -32,8 +41,7 @@ class FilesWindow(PopupWindow):
 
         ttk.Label(master, text=self.msg).grid(row=0, column=0, pady=2, sticky="nwse")
 
-        self.e = ttk.Entry(master, width=50)
-
+        self.e = ttk.Entry(master, width=50, textvariable=self.e_var)
         self.e.grid(row=0, column=1, padx=3)
 
         self.create_widgets(self.fname)
@@ -59,6 +67,11 @@ class FilesWindow(PopupWindow):
         self.bind("<Escape>", self.cancel)
 
         box.grid(row=4, pady=5)
+
+    def cancel(self, event=None):
+
+        self.fname = None   # reset 'fname' attribute no matter whether entry box is empty or not
+        super().cancel()
 
     def create_widgets(self, fname):
 
@@ -96,7 +109,9 @@ class FilesWindow(PopupWindow):
 
     def create_tree(self):
 
-        self.filenames = glob.glob(os.path.join(self.directory, "*.pkl"))
+        types = ("*.pkl", "*.pickle", "*.json")
+        for ftype in types:
+            self.filenames.extend(glob.glob(os.path.join(self.directory, ftype)))
 
         if len(self.filenames) == 0:
             self.lab.config(text=self.lab_msg + "\nNo address book found in this location.")
@@ -124,6 +139,7 @@ class FilesWindow(PopupWindow):
         self.tree.tag_configure("odd", background="#fffdc1")
 
     def change_row_colors(self):
+
         children = self.tree.get_children()
 
         for i, iid in enumerate(children):
@@ -133,6 +149,7 @@ class FilesWindow(PopupWindow):
                 self.tree.item(iid, tags=("odd",))
 
     def create_menu(self):
+
         self.menu = tk.Menu(self.master, background="#fefdca", foreground="black",
                activebackground="#fcb040", activeforeground="black")
         self.menu.add_command(label="Open File", command=self.on_double_click)
@@ -150,6 +167,7 @@ class FilesWindow(PopupWindow):
             self.change_row_colors()  # reload rows' colors
 
     def ok(self, event=None):
+
         self.apply()
         if os.path.isdir(self.result):
             os.chdir(self.result)
@@ -164,8 +182,10 @@ class FilesWindow(PopupWindow):
         """On double click open file from list of files in chosen directory"""
 
         if self.tree.selection():
-            item = self.tree.selection()[0]
-            fname = self.tree.item(item, "values")[0]
+            item = self.tree.selection()[0]             # item clicked
+            fname = self.tree.item(item, "values")[0]   # get filename
+            self.fformat = os.path.splitext(fname)[1]   # get file format
+            self.e_var.set(fname)                       # set filename to entry
             self.result = fname
             self.cancel()
 
@@ -175,9 +195,7 @@ class FilesWindow(PopupWindow):
         item = self.tree.selection()
         if isinstance(item, tuple):
             fname = self.tree.item(item, "values")[0]
-            var = tk.StringVar()
-            self.e.config(textvariable=var)
-            var.set(fname)
+            self.e_var.set(fname)
 
     def popup(self, event=None):
         """Create a popup menu (launched on right click)"""
@@ -193,7 +211,7 @@ class FilesWindow(PopupWindow):
         data.sort(key=lambda x: (x[0] == "None", int(x[0]) if x[0].isdigit() else x[0]), reverse=order)
 
         for i, item in enumerate(data):
-            self.tree.move(item[1], '', i)
+            self.tree.move(item[1], "", i)
         self.tree.heading(col, command=lambda c=col:
         self.sort_by(c, not order))
 
