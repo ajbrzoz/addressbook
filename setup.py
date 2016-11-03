@@ -1,7 +1,7 @@
 from setuptools import setup
 
 config = {
-    'description': 'AddressBook 1.0 - simple contact manager',
+    'description': 'Simple contact manager',
     'author': 'Anna Brzozowska',
     'url': '',
     'author_email': 'brzozowskaanna5@gmail.com',
@@ -9,7 +9,8 @@ config = {
     'install_requires': ['xlwt', ],
     'packages': ['addressbook', 'addressbook.ab_windows'],
     'scripts': [],
-    'name': 'AddressBook'
+    'name': 'AddressBook',
+    'keywords': ['addressbook', 'phonebook']
 }
 
 setup(**config, requires=['xlwt'])
